@@ -1,0 +1,155 @@
+{
+  "enabled": true,
+  "rules": [
+    {
+      "id": "rule-prevent-prompt-leak",
+      "name": "黑名单提示词",
+      "enabled": true,
+      "pattern": {
+        "type": "contains",
+        "value": "If you are working on tasks that would benefit from a todo list please use the TodoWrite tool to create one.",
+        "caseSensitive": false
+      },
+      "action": {
+        "type": "remove_content"
+      },
+      "description": "检测并删除包含'do not mention this message'的content块，防止提示词泄露"
+    },
+    {
+      "id": "rule-prevent-prompt-leak",
+      "name": "黑名单提示词",
+      "enabled": true,
+      "pattern": {
+        "type": "contains",
+        "value": "update_todo_list",
+        "caseSensitive": false
+      },
+      "action": {
+        "type": "remove_content"
+      },
+      "description": "检测并删除包含'do not mention this message'的content块，防止提示词泄露"
+    },
+    {
+      "id": "rule-hide-system-prefix",
+      "name": "隐藏系统标记",
+      "enabled": false,
+      "pattern": {
+        "type": "prefix",
+        "value": "[SYSTEM]",
+        "caseSensitive": true
+      },
+      "action": {
+        "type": "delete_keyword"
+      },
+      "description": "删除消息开头的[SYSTEM]前缀标记"
+    },
+    {
+      "id": "rule-remove-hidden-suffix",
+      "name": "移除隐藏后缀",
+      "enabled": false,
+      "pattern": {
+        "type": "suffix",
+        "value": "[隐藏]",
+        "caseSensitive": false
+      },
+      "action": {
+        "type": "delete_keyword"
+      },
+      "description": "删除消息末尾的[隐藏]后缀标记"
+    },
+    {
+      "id": "rule-replace-sensitive",
+      "name": "替换敏感信息",
+      "enabled": false,
+      "pattern": {
+        "type": "contains",
+        "value": "password",
+        "caseSensitive": false
+      },
+      "action": {
+        "type": "replace",
+        "replacement": "***"
+      },
+      "description": "将'password'替换为***（示例：已禁用）"
+    },
+    {
+      "id": "rule-remove-instruction",
+      "name": "移除特定指令",
+      "enabled": false,
+      "pattern": {
+        "type": "contains",
+        "value": "ignore previous instructions",
+        "caseSensitive": false
+      },
+      "action": {
+        "type": "remove_content"
+      },
+      "description": "删除包含'ignore previous instructions'的整个content块（示例：已禁用）"
+    },
+    {
+      "id": "rule-regex-example",
+      "name": "正则表达式示例",
+      "enabled": false,
+      "pattern": {
+        "type": "regex",
+        "value": "\\d{3}-\\d{4}-\\d{4}",
+        "caseSensitive": false
+      },
+      "action": {
+        "type": "replace",
+        "replacement": "[电话号码已隐藏]"
+      },
+      "description": "使用正则表达式匹配电话号码格式并替换（示例：已禁用）"
+    },
+    {
+      "id": "rule-system-engineering-agent",
+      "name": "系统提示词-Kiro",
+      "enabled": true,
+      "pattern": {
+        "type": "contains",
+        "value": "You are Kilo Code",
+        "caseSensitive": false
+      },
+      "action": {
+        "type": "replace",
+        "replacement": "AI助手"
+      },
+      "description": "在system字段中替换'engineering agent'为'AI助手'"
+    },
+    {
+      "id": "rule-system-software-engineering",
+      "name": "系统提示词-软件工程",
+      "enabled": false,
+      "pattern": {
+        "type": "contains",
+        "value": "software engineering",
+        "caseSensitive": false
+      },
+      "action": {
+        "type": "replace",
+        "replacement": "软件开发"
+      },
+      "description": "在system字段中替换'software engineering'为'软件开发'"
+    },
+    {
+      "id": "rule-system-remove-droid",
+      "name": "系统提示词-移除Droid标识",
+      "enabled": false,
+      "pattern": {
+        "type": "contains",
+        "value": "Droid, an AI software engineering agent built by Factory",
+        "caseSensitive": false
+      },
+      "action": {
+        "type": "replace",
+        "replacement": "一个AI助手"
+      },
+      "description": "在system字段中移除Droid的具体标识信息"
+    }
+  ],
+  "logging": {
+    "enabled": true,
+    "logMatches": true,
+    "logActions": true
+  }
+}

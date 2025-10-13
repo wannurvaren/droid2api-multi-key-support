@@ -3,6 +3,7 @@ import { loadConfig, isDevMode, getPort, getRoundRobin, getRemoveOn402 } from '.
 import { logInfo, logError } from './logger.js';
 import router from './routes.js';
 import { initializeAuth } from './auth.js';
+import { keywordFilter } from './keyword-filter.js';
 
 const app = express();
 
@@ -119,6 +120,14 @@ app.use((err, req, res, next) => {
     // Initialize auth system (load and setup API key if needed)
     // This won't throw error if no auth config is found - will use client auth
     await initializeAuth(roundRobin, removeOn402);
+    
+    // Load keyword filter configuration
+    keywordFilter.loadConfig('./keywords-filter.json');
+    if (keywordFilter.isEnabled()) {
+      logInfo(`Keyword filter: ENABLED (${keywordFilter.getRuleCount()} rules)`);
+    } else {
+      logInfo('Keyword filter: DISABLED');
+    }
     
     const PORT = getPort();
   logInfo(`Starting server on port ${PORT}...`);

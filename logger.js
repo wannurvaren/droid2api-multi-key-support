@@ -27,6 +27,13 @@ export function logError(message, error = null) {
   }
 }
 
+export function logWarning(message, data = null) {
+  console.warn(`[WARNING] ${message}`);
+  if (data && isDevMode()) {
+    console.warn(JSON.stringify(data, null, 2));
+  }
+}
+
 export function logRequest(method, url, headers = null, body = null) {
   if (isDevMode()) {
     console.log(`\n${'='.repeat(80)}`);

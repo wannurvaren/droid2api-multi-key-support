@@ -9,6 +9,7 @@ import { AnthropicResponseTransformer } from './transformers/response-anthropic.
 import { OpenAIResponseTransformer } from './transformers/response-openai.js';
 import { getApiKey, recordRequestResult } from './auth.js';
 import { getKeyManager } from './key-manager.js';
+import { keywordFilter } from './keyword-filter.js';
 
 const router = express.Router();
 
@@ -84,6 +85,25 @@ async function handleChatCompletions(req, res) {
   
   try {
     const openaiRequest = req.body;
+    
+    // Debug: 记录原始请求
+    logDebug('=== Original Request (before filter) ===', {
+      model: openaiRequest.model,
+      messages: openaiRequest.messages
+    });
+    
+    // 应用关键词过滤
+    if (keywordFilter.isEnabled()) {
+      logDebug('Keyword filter is ENABLED, applying filters...');
+      keywordFilter.filterRequest(openaiRequest, 'openai');
+      logDebug('=== Request After Filter ===', {
+        model: openaiRequest.model,
+        messages: openaiRequest.messages
+      });
+    } else {
+      logDebug('Keyword filter is DISABLED');
+    }
+    
     const modelId = openaiRequest.model;
 
     if (!modelId) {
@@ -236,6 +256,25 @@ async function handleDirectResponses(req, res) {
   
   try {
     const openaiRequest = req.body;
+    
+    // Debug: 记录原始请求
+    logDebug('=== Original Request (before filter) ===', {
+      model: openaiRequest.model,
+      input: openaiRequest.input
+    });
+    
+    // 应用关键词过滤
+    if (keywordFilter.isEnabled()) {
+      logDebug('Keyword filter is ENABLED, applying filters...');
+      keywordFilter.filterRequest(openaiRequest, 'responses');
+      logDebug('=== Request After Filter ===', {
+        model: openaiRequest.model,
+        input: openaiRequest.input
+      });
+    } else {
+      logDebug('Keyword filter is DISABLED');
+    }
+    
     const modelId = openaiRequest.model;
 
     if (!modelId) {
@@ -375,6 +414,25 @@ async function handleDirectMessages(req, res) {
   
   try {
     const anthropicRequest = req.body;
+    
+    // Debug: 记录原始请求
+    logDebug('=== Original Request (before filter) ===', {
+      model: anthropicRequest.model,
+      messages: anthropicRequest.messages
+    });
+    
+    // 应用关键词过滤
+    if (keywordFilter.isEnabled()) {
+      logDebug('Keyword filter is ENABLED, applying filters...');
+      keywordFilter.filterRequest(anthropicRequest, 'anthropic');
+      logDebug('=== Request After Filter ===', {
+        model: anthropicRequest.model,
+        messages: anthropicRequest.messages
+      });
+    } else {
+      logDebug('Keyword filter is DISABLED');
+    }
+    
     const modelId = anthropicRequest.model;
 
     if (!modelId) {
@@ -524,6 +582,7 @@ router.get('/status', (req, res) => {
   
   try {
     const keyManager = getKeyManager();
+    const filterStats = keywordFilter.getStats();
     
     if (!keyManager) {
       // 如果没有使用KeyManager（例如使用refresh token或client auth）
@@ -560,6 +619,25 @@ router.get('/status', (req, res) => {
             <p>Multi-key statistics are not available.</p>
             <p>This feature is only enabled when using FACTORY_API_KEY or factory_keys.txt with multiple keys.</p>
           </div>
+          
+          ${filterStats.enabled ? `
+          <div class="section">
+            <h2>Keyword Filter</h2>
+            <div class="info">
+              <p><strong>Status:</strong> <span class="success">ENABLED</span></p>
+              <p><strong>Active Rules:</strong> ${filterStats.ruleCount}</p>
+              <p><strong>Total Filtered:</strong> ${filterStats.totalFiltered}</p>
+              <p><strong>Total Matches:</strong> ${filterStats.totalMatches}</p>
+            </div>
+          </div>
+          ` : `
+          <div class="section">
+            <h2>Keyword Filter</h2>
+            <div class="info">
+              <p><strong>Status:</strong> DISABLED</p>
+            </div>
+          </div>
+          `}
         </body>
         </html>
       `);
@@ -740,6 +818,44 @@ router.get('/status', (req, res) => {
             <p><strong>Deprecated Keys:</strong> ${stats.deprecatedKeys ? stats.deprecatedKeys.length : 0}</p>
           </div>
         </div>
+        
+        ${filterStats.enabled ? `
+        <div class="section">
+          <h2>Keyword Filter Statistics</h2>
+          <div class="info">
+            <p><strong>Status:</strong> <span class="success">ENABLED</span></p>
+            <p><strong>Active Rules:</strong> ${filterStats.ruleCount}</p>
+            <p><strong>Total Content Filtered:</strong> ${filterStats.totalFiltered}</p>
+            <p><strong>Total Rule Matches:</strong> ${filterStats.totalMatches}</p>
+          </div>
+          ${Object.keys(filterStats.ruleMatches).length > 0 ? `
+          <table>
+            <thead>
+              <tr>
+                <th>Rule ID</th>
+                <th>Matches</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${Object.entries(filterStats.ruleMatches).map(([ruleId, count]) => `
+                <tr>
+                  <td><code>${ruleId}</code></td>
+                  <td class="rate">${count}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          ` : ''}
+        </div>
+        ` : `
+        <div class="section">
+          <h2>Keyword Filter</h2>
+          <div class="info">
+            <p><strong>Status:</strong> DISABLED</p>
+            <p style="color: #888;">Create <code>keywords-filter.json</code> to enable keyword filtering</p>
+          </div>
+        </div>
+        `}
         
         ${stats.endpoints.length > 0 ? `
         <div class="section">
