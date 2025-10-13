@@ -1,0 +1,11 @@
+# Factory API Keys Configuration File
+# 每行一个key，支持注释行（以#开头）
+# 空行会被自动忽略
+
+# 示例key（请替换为实际的key）
+your_factory_api_key_1_here
+your_factory_api_key_2_here
+your_factory_api_key_3_here
+
+# 更多key可以继续添加
+# your_factory_api_key_4_here
